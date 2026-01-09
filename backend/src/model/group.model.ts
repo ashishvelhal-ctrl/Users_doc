@@ -3,8 +3,8 @@ import mongoose, { Schema, Document, Model } from "mongoose"
 export interface IGroup extends Document {
   name: string
   description?: string
-  members: string[]     // ✅ EMAILS ONLY
-  createdBy: string     // ✅ EMAIL ONLY
+  members: string[]     
+  createdBy: string    
   createdAt: Date
   updatedAt: Date
 }
@@ -23,12 +23,12 @@ const groupSchema = new Schema<IGroup>(
     },
 
     members: {
-      type: [String],    // ✅ STRING ARRAY
+      type: [String],    
       default: [],
     },
 
     createdBy: {
-      type: String,      // ✅ STRING
+      type: String,     
       required: true,
       lowercase: true,
       trim: true,

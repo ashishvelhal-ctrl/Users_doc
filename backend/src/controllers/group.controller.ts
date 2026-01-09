@@ -1,5 +1,7 @@
 import { Request, Response } from "express"
 import { Group } from "../models/group.model"
+import { User } from "../models/user.model"
+import mongoose from "mongoose"
 
 export const createGroup = async (req: Request, res: Response) => {
   try {
@@ -7,20 +9,32 @@ export const createGroup = async (req: Request, res: Response) => {
 
     if (!name || !createdBy) {
       return res.status(400).json({
-        message: "Group name and creator email required",
+        message: "Group name and creator id required",
       })
     }
+    if (!mongoose.Types.ObjectId.isValid(createdBy)) {
+      return res.status(400).json({ message: "Invalid creator id" })
+    }
 
-    const members = [
-      createdBy,
-      ...users.filter((u: string) => typeof u === "string"),
-    ]
+    const creator = await User.findById(createdBy)
+    if (!creator) {
+      return res.status(404).json({ message: "Creator not found" })
+    }
+
+    const members = Array.from(
+      new Set([
+        createdBy,
+        ...users.filter((u: string) =>
+          mongoose.Types.ObjectId.isValid(u)
+        ),
+      ])
+    )
 
     const group = await Group.create({
-      name,
+      name: name.trim(),
       description,
-      createdBy,   
-      members,     
+      createdBy,
+      members,
     })
 
     res.status(201).json(group)

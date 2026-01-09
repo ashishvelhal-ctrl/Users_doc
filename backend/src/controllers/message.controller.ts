@@ -33,15 +33,12 @@ export const sendMessage = async (
         .json({ message: "Message is empty" })
     }
 
-    // ✅ Validate group
     const group = await Group.findById(groupId)
     if (!group) {
       return res
         .status(404)
         .json({ message: "Group not found" })
     }
-
-    // ✅ CORRECT FIELD: groupId (not group)
     const message = await Message.create({
       groupId: groupId,
       senderEmail,

@@ -28,38 +28,44 @@ export default function GroupConversation({ groupId }: Props) {
   const bottomRef = useRef<HTMLDivElement | null>(null)
 
   const [visibleCount, setVisibleCount] = useState(PAGE_SIZE)
-  const [isLoadingMore, setIsLoadingMore] = useState(false)
+  const [loadingMore, setLoadingMore] = useState(false)
   const [previewImage, setPreviewImage] = useState<string | null>(null)
 
   const currentUser = JSON.parse(localStorage.getItem("user") || "null")
 
-  const { data = [], isLoading } = useQuery<Message[]>({
+  const { data: messages = [], isLoading } = useQuery<Message[]>({
     queryKey: ["messages", groupId],
     queryFn: () => getMessages(groupId),
+    staleTime: 1000 * 10,
+    keepPreviousData: true,
   })
-  const sortedMessages = [...data].sort(
-    (a, b) => +new Date(a.createdAt) - +new Date(b.createdAt)
+
+  const sortedMessages = [...messages].sort(
+    (a, b) => new Date(a.createdAt).getTime() - new Date(b.createdAt).getTime()
   )
+
   const visibleMessages = sortedMessages.slice(
     Math.max(sortedMessages.length - visibleCount, 0)
   )
+
   useLayoutEffect(() => {
     bottomRef.current?.scrollIntoView({ behavior: "smooth" })
-  }, [data.length])
+  }, [sortedMessages.length])
   const handleScroll = () => {
     if (!containerRef.current) return
 
     if (
       containerRef.current.scrollTop === 0 &&
       visibleCount < sortedMessages.length &&
-      !isLoadingMore
+      !loadingMore
     ) {
-      setIsLoadingMore(true)
+      setLoadingMore(true)
+
       setTimeout(() => {
         setVisibleCount((prev) =>
           Math.min(prev + PAGE_SIZE, sortedMessages.length)
         )
-        setIsLoadingMore(false)
+        setLoadingMore(false)
       }, 400)
     }
   }
@@ -71,7 +77,7 @@ export default function GroupConversation({ groupId }: Props) {
         onScroll={handleScroll}
         className="h-full overflow-y-auto p-4 bg-slate-900"
       >
-        {isLoadingMore && (
+        {loadingMore && (
           <div className="text-center text-xs text-slate-400 mb-3">
             Loading older messages...
           </div>
@@ -90,6 +96,8 @@ export default function GroupConversation({ groupId }: Props) {
         )}
 
         {visibleMessages.map((msg) => {
+          if (!msg || !msg.senderEmail) return null
+
           const isMe = msg.senderEmail === currentUser?.email
           const fileUrl = msg.file
             ? `http://localhost:5000${msg.file.url}`
@@ -98,20 +106,20 @@ export default function GroupConversation({ groupId }: Props) {
           return (
             <div
               key={msg._id}
-              className={`flex ${isMe ? "justify-end" : "justify-start"} mb-3`}
+              className={`flex ${
+                isMe ? "justify-end" : "justify-start"
+              } mb-3`}
             >
               <div className="max-w-[70%]">
-                {!isMe && (
-                  <div className="text-[11px] mb-1 text-indigo-400">
-                    {msg.senderName || msg.senderEmail}
-                  </div>
-                )}
-
-                {isMe && (
-                  <div className="text-[11px] mb-1 text-right text-indigo-300">
-                    You
-                  </div>
-                )}
+                <div
+                  className={`text-[11px] mb-1 ${
+                    isMe
+                      ? "text-right text-indigo-300"
+                      : "text-indigo-400"
+                  }`}
+                >
+                  {isMe ? "You" : msg.senderName || msg.senderEmail}
+                </div>
 
                 <div
                   className={`px-4 py-2 rounded-lg text-sm text-white ${
@@ -140,14 +148,16 @@ export default function GroupConversation({ groupId }: Props) {
 
         <div ref={bottomRef} />
       </div>
+
       {previewImage && (
         <div
-          className="fixed inset-0 z-50 bg-black/40 flex items-center justify-center"
+          className="fixed inset-0 z-50 bg-black/60 flex items-center justify-center"
           onClick={() => setPreviewImage(null)}
         >
           <img
             src={previewImage}
             className="max-w-[90%] max-h-[90%] rounded-lg"
+            onClick={(e) => e.stopPropagation()}
           />
         </div>
       )}
