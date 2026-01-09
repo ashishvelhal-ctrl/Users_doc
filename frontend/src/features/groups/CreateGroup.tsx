@@ -6,15 +6,16 @@ type User = {
   name: string
   email: string
 }
+
 async function fetchUsers(): Promise<User[]> {
   const res = await fetch("http://localhost:5000/api/users")
   if (!res.ok) throw new Error("Failed to load users")
   return res.json()
 }
+
 const currentUser = JSON.parse(
   sessionStorage.getItem("user") || "{}"
 )
-
 
 export default function CreateGroup() {
   const [groupName, setGroupName] = useState("")
@@ -22,10 +23,15 @@ export default function CreateGroup() {
   const [selectedUsers, setSelectedUsers] = useState<string[]>([])
   const [loading, setLoading] = useState(false)
 
-  const { data: users = [], isLoading, isError } = useQuery({
+  const {
+    data: users = [],
+    isLoading,
+    isError,
+  } = useQuery({
     queryKey: ["users"],
     queryFn: fetchUsers,
   })
+
   const toggleUser = (id: string) => {
     setSelectedUsers((prev) =>
       prev.includes(id)
@@ -33,6 +39,7 @@ export default function CreateGroup() {
         : [...prev, id]
     )
   }
+
   const handleCreate = async () => {
     if (!currentUser?.email) {
       alert("User not logged in")
@@ -42,14 +49,16 @@ export default function CreateGroup() {
     try {
       setLoading(true)
 
+      // ✅ Convert selected user IDs → EMAILS
+      const memberEmails = users
+        .filter((u) => selectedUsers.includes(u._id))
+        .map((u) => u.email)
+
       const payload = {
         name: groupName,
         description,
-        users: selectedUsers,
-        createdBy: {
-          name: currentUser.name,
-          email: currentUser.email,
-        },
+        users: memberEmails,              // ✅ EMAIL ARRAY
+        createdBy: currentUser.email,     // ✅ EMAIL STRING
       }
 
       const res = await fetch("http://localhost:5000/api/groups", {
@@ -61,12 +70,14 @@ export default function CreateGroup() {
       })
 
       if (!res.ok) throw new Error("Create failed")
+
       setGroupName("")
       setDescription("")
       setSelectedUsers([])
 
       alert("Group created successfully ✅")
     } catch (err) {
+      console.error(err)
       alert("Failed to create group ❌")
     } finally {
       setLoading(false)
@@ -78,6 +89,8 @@ export default function CreateGroup() {
       <h2 className="text-xl font-semibold mb-4">
         Create Group
       </h2>
+
+      {/* Creator Info */}
       <div className="mb-4 p-3 bg-slate-800 border border-slate-700 rounded">
         <p className="text-xs text-gray-400 mb-1">
           Created By
@@ -89,18 +102,21 @@ export default function CreateGroup() {
           {currentUser.email || ""}
         </p>
       </div>
+
       <input
         value={groupName}
         onChange={(e) => setGroupName(e.target.value)}
         placeholder="Group Name"
         className="w-full p-2 mb-3 bg-slate-800 border border-slate-700 rounded"
       />
+
       <textarea
         value={description}
         onChange={(e) => setDescription(e.target.value)}
         placeholder="Description"
         className="w-full p-2 mb-4 bg-slate-800 border border-slate-700 rounded"
       />
+
       <div className="mb-4">
         <p className="text-sm text-gray-400 mb-2">
           Add Users
@@ -139,6 +155,7 @@ export default function CreateGroup() {
           ))}
         </div>
       </div>
+
       <button
         onClick={handleCreate}
         disabled={!groupName || loading}

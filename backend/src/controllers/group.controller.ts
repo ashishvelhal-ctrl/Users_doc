@@ -3,30 +3,25 @@ import { Group } from "../models/group.model"
 
 export const createGroup = async (req: Request, res: Response) => {
   try {
-    console.log("REQ BODY:", req.body) 
+    const { name, description, users = [], createdBy } = req.body
 
-    const name = req.body.name
-    const description = req.body.description
-    const users = req.body.users || []
-    const creatorEmail = req.body?.createdBy?.email
-
-    if (!name) {
-      return res.status(400).json({ message: "Group name required" })
-    }
-
-    if (!creatorEmail) {
+    if (!name || !createdBy) {
       return res.status(400).json({
-        message: "Creator email is required",
+        message: "Group name and creator email required",
       })
     }
+
+    // ✅ Ensure ALL members are strings (emails)
+    const members = [
+      createdBy,
+      ...users.filter((u: string) => typeof u === "string"),
+    ]
 
     const group = await Group.create({
       name,
       description,
-      members: users,
-      createdBy: {
-        email: creatorEmail, 
-      },
+      createdBy,   // ✅ STRING EMAIL
+      members,     // ✅ STRING ARRAY
     })
 
     res.status(201).json(group)
