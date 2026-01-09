@@ -12,6 +12,7 @@ export interface IMessage extends Document {
     url: string
   }
   createdAt: Date
+  updatedAt: Date
 }
 
 const messageSchema = new Schema<IMessage>(
@@ -26,6 +27,7 @@ const messageSchema = new Schema<IMessage>(
       type: String,
       required: true,
       lowercase: true,
+      trim: true,
     },
 
     text: {
@@ -41,7 +43,9 @@ const messageSchema = new Schema<IMessage>(
       url: String,
     },
   },
-  { timestamps: true }
+  {
+    timestamps: true,
+  }
 )
 
 export const Message: Model<IMessage> =

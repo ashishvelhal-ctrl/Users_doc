@@ -6,6 +6,15 @@ type Props = {
   groupId: string
 }
 
+const currentUser = JSON.parse(
+  sessionStorage.getItem("user") || "{}"
+)
+
+// 🔹 Helper to detect image files
+const isImageFile = (file: File) => {
+  return file.type.startsWith("image/")
+}
+
 export default function GroupMessageInput({ groupId }: Props) {
   const [text, setText] = useState("")
   const [file, setFile] = useState<File | null>(null)
@@ -26,8 +35,13 @@ export default function GroupMessageInput({ groupId }: Props) {
   const handleSend = () => {
     if (!text.trim() && !file) return
 
+    if (!currentUser?.email) {
+      alert("User not logged in")
+      return
+    }
+
     const formData = new FormData()
-    formData.append("senderEmail", "ashish@gmail.com")
+    formData.append("senderEmail", currentUser.email)
 
     if (text.trim()) {
       formData.append("text", text)
@@ -44,11 +58,23 @@ export default function GroupMessageInput({ groupId }: Props) {
     <div className="border-t border-slate-700 bg-slate-800 p-3">
       {/* 🔹 File Preview */}
       {file && (
-        <div className="mb-2 text-xs text-slate-400 flex items-center gap-2">
-          📎 {file.name}
+        <div className="mb-3 flex items-center gap-3 bg-slate-900 p-2 rounded-md">
+          {/* Image Preview */}
+          {isImageFile(file) ? (
+            <img
+              src={URL.createObjectURL(file)}
+              alt="preview"
+              className="w-16 h-16 object-cover rounded-md"
+            />
+          ) : (
+            <div className="flex items-center gap-2 text-xs text-slate-400">
+              📎 {file.name}
+            </div>
+          )}
+
           <button
             onClick={() => setFile(null)}
-            className="text-red-400 hover:text-red-500"
+            className="ml-auto text-red-400 hover:text-red-500 text-sm"
           >
             ✕
           </button>
@@ -56,8 +82,8 @@ export default function GroupMessageInput({ groupId }: Props) {
       )}
 
       <div className="flex items-center gap-2">
-        {/* Attachment */}
-        <label className="cursor-pointer text-gray-400">
+        {/* File Picker */}
+        <label className="cursor-pointer text-gray-400 hover:text-white">
           📎
           <input
             type="file"
@@ -68,7 +94,7 @@ export default function GroupMessageInput({ groupId }: Props) {
           />
         </label>
 
-        {/* Text input */}
+        {/* Text Input */}
         <input
           value={text}
           onChange={(e) => setText(e.target.value)}
@@ -82,7 +108,7 @@ export default function GroupMessageInput({ groupId }: Props) {
           }}
         />
 
-        {/* Send */}
+        {/* Send Button */}
         <button
           onClick={handleSend}
           disabled={!text.trim() && !file}

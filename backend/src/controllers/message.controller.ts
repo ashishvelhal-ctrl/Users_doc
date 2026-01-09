@@ -2,7 +2,10 @@ import { Request, Response } from "express"
 import { Message } from "../models/message.model"
 import { Group } from "../models/group.model"
 
-export const getMessagesByGroup = async (req: Request, res: Response) => {
+export const getMessagesByGroup = async (
+  req: Request,
+  res: Response
+) => {
   try {
     const { groupId } = req.params
 
@@ -16,28 +19,41 @@ export const getMessagesByGroup = async (req: Request, res: Response) => {
   }
 }
 
-export const sendMessage = async (req: Request, res: Response) => {
+export const sendMessage = async (
+  req: Request,
+  res: Response
+) => {
   try {
     const { text, senderEmail } = req.body
     const { groupId } = req.params
 
     if (!text && !req.file) {
-      return res.status(400).json({ message: "Message is empty" })
+      return res
+        .status(400)
+        .json({ message: "Message is empty" })
     }
 
+    // ✅ Validate group
     const group = await Group.findById(groupId)
     if (!group) {
-      return res.status(404).json({ message: "Group not found" })
+      return res
+        .status(404)
+        .json({ message: "Group not found" })
     }
 
+    // ✅ CORRECT FIELD: groupId (not group)
     const message = await Message.create({
-      group: groupId,
+      groupId: groupId,
       senderEmail,
-      text: text || undefined,
+      text: text?.trim() || undefined,
+
       file: req.file
         ? {
-            url: `/uploads/${req.file.filename}`,
             originalName: req.file.originalname,
+            fileName: req.file.filename,
+            mimeType: req.file.mimetype,
+            size: req.file.size,
+            url: `/uploads/${req.file.filename}`,
           }
         : undefined,
     })
@@ -45,6 +61,8 @@ export const sendMessage = async (req: Request, res: Response) => {
     res.status(201).json(message)
   } catch (error) {
     console.error("SEND MESSAGE ERROR:", error)
-    res.status(500).json({ message: "Internal server error" })
+    res.status(500).json({
+      message: "Internal server error",
+    })
   }
 }
