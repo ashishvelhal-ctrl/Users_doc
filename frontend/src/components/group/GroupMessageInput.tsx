@@ -6,11 +6,6 @@ type Props = {
   groupId: string
 }
 
-const currentUser = JSON.parse(
-  sessionStorage.getItem("user") || "{}"
-)
-
-// 🔹 Helper to detect image files
 const isImageFile = (file: File) => {
   return file.type.startsWith("image/")
 }
@@ -18,6 +13,10 @@ const isImageFile = (file: File) => {
 export default function GroupMessageInput({ groupId }: Props) {
   const [text, setText] = useState("")
   const [file, setFile] = useState<File | null>(null)
+
+  const currentUser = JSON.parse(
+    sessionStorage.getItem("user") || "null"
+  )
 
   const queryClient = useQueryClient()
 
@@ -56,10 +55,8 @@ export default function GroupMessageInput({ groupId }: Props) {
 
   return (
     <div className="border-t border-slate-700 bg-slate-800 p-3">
-      {/* 🔹 File Preview */}
       {file && (
         <div className="mb-3 flex items-center gap-3 bg-slate-900 p-2 rounded-md">
-          {/* Image Preview */}
           {isImageFile(file) ? (
             <img
               src={URL.createObjectURL(file)}
@@ -82,7 +79,6 @@ export default function GroupMessageInput({ groupId }: Props) {
       )}
 
       <div className="flex items-center gap-2">
-        {/* File Picker */}
         <label className="cursor-pointer text-gray-400 hover:text-white">
           📎
           <input
@@ -94,7 +90,6 @@ export default function GroupMessageInput({ groupId }: Props) {
           />
         </label>
 
-        {/* Text Input */}
         <input
           value={text}
           onChange={(e) => setText(e.target.value)}
@@ -108,7 +103,6 @@ export default function GroupMessageInput({ groupId }: Props) {
           }}
         />
 
-        {/* Send Button */}
         <button
           onClick={handleSend}
           disabled={!text.trim() && !file}

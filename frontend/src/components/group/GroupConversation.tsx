@@ -17,14 +17,17 @@ type Props = {
   groupId: string
 }
 
-const CURRENT_USER_EMAIL = "ashish@gmail.com"
-
 const isImageFile = (filename: string) => {
   return /\.(jpg|jpeg|png|gif|webp)$/i.test(filename)
 }
 
 export default function GroupConversation({ groupId }: Props) {
   const bottomRef = useRef<HTMLDivElement | null>(null)
+
+  // ✅ CURRENT LOGGED-IN USER
+  const currentUser = JSON.parse(
+    sessionStorage.getItem("user") || "null"
+  )
 
   const { data: messages = [], isLoading } = useQuery<Message[]>({
     queryKey: ["messages", groupId],
@@ -47,7 +50,8 @@ export default function GroupConversation({ groupId }: Props) {
 
       {!isLoading &&
         messages.map((msg) => {
-          const isMe = msg.senderEmail === CURRENT_USER_EMAIL
+          // ✅ ALIGNMENT LOGIC
+          const isMe = msg.senderEmail === currentUser?.email
           const fileUrl = msg.file
             ? `http://localhost:5000${msg.file.url}`
             : null
@@ -55,54 +59,64 @@ export default function GroupConversation({ groupId }: Props) {
           return (
             <div
               key={msg._id}
-              className={`max-w-[70%] mb-2 ${isMe ? "ml-auto" : ""}`}
+              className={`flex ${
+                isMe ? "justify-end" : "justify-start"
+              } mb-2`}
             >
-              <div
-                className={`text-[11px] mb-1 ${
-                  isMe
-                    ? "text-right text-indigo-300"
-                    : "text-indigo-400"
-                }`}
-              >
-                {msg.senderName || msg.senderEmail}
-              </div>
+              <div className="max-w-[70%]">
+                {/* Sender name */}
+                <div
+                  className={`text-[11px] mb-1 ${
+                    isMe
+                      ? "text-right text-indigo-300"
+                      : "text-indigo-400"
+                  }`}
+                >
+                  {msg.senderName || msg.senderEmail}
+                </div>
 
-              <div
-                className={`px-4 py-2 rounded-lg text-sm text-white ${
-                  isMe
-                    ? "bg-indigo-600 rounded-br-none"
-                    : "bg-slate-800 rounded-bl-none"
-                }`}
-              >
-                {msg.file &&
-                  fileUrl &&
-                  isImageFile(msg.file.originalName) && (
-                    <a
-                      href={fileUrl}
-                      target="_blank"
-                      rel="noopener noreferrer"
-                    >
-                      <img
-                        src={fileUrl}
-                        alt={msg.file.originalName}
-                        className="max-w-full rounded-md mb-2 cursor-pointer"
-                      />
-                    </a>
-                  )}
+                {/* Message bubble */}
+                <div
+                  className={`px-4 py-2 rounded-lg text-sm text-white ${
+                    isMe
+                      ? "bg-indigo-600 rounded-br-none"
+                      : "bg-slate-800 rounded-bl-none"
+                  }`}
+                >
+                  {/* Image preview */}
+                  {msg.file &&
+                    fileUrl &&
+                    isImageFile(msg.file.originalName) && (
+                      <a
+                        href={fileUrl}
+                        target="_blank"
+                        rel="noopener noreferrer"
+                      >
+                        <img
+                          src={fileUrl}
+                          alt={msg.file.originalName}
+                          className="max-w-full rounded-md mb-2 cursor-pointer"
+                        />
+                      </a>
+                    )}
 
-                {msg.text && <p>{msg.text}</p>}
-                {msg.file &&
-                  fileUrl &&
-                  !isImageFile(msg.file.originalName) && (
-                    <a
-                      href={fileUrl}
-                      target="_blank"
-                      rel="noopener noreferrer"
-                      className="text-indigo-300 underline text-xs block mt-2"
-                    >
-                      📎 {msg.file.originalName}
-                    </a>
-                  )}
+                  {/* Text */}
+                  {msg.text && <p>{msg.text}</p>}
+
+                  {/* File */}
+                  {msg.file &&
+                    fileUrl &&
+                    !isImageFile(msg.file.originalName) && (
+                      <a
+                        href={fileUrl}
+                        target="_blank"
+                        rel="noopener noreferrer"
+                        className="text-indigo-300 underline text-xs block mt-2"
+                      >
+                        📎 {msg.file.originalName}
+                      </a>
+                    )}
+                </div>
               </div>
             </div>
           )
