@@ -1,8 +1,15 @@
-import { useQuery } from "@tanstack/react-query"
+import { useQuery, useQueryClient } from "@tanstack/react-query"
 import axios from "@/lib/axios"
+import { logoutApi } from "@/features/auth/auth.api"
 
 export function useAuth() {
-  const { data: user, isLoading } = useQuery({
+  const queryClient = useQueryClient()
+
+  const {
+    data: user,
+    isLoading,
+    isError,
+  } = useQuery({
     queryKey: ["me"],
     queryFn: async () => {
       const res = await axios.get("/auth/me")
@@ -11,5 +18,15 @@ export function useAuth() {
     retry: false,
   })
 
-  return { user, isLoading }
+  const logout = async () => {
+    await logoutApi()
+    queryClient.clear() 
+  }
+
+  return {
+    user,
+    isLoading,
+    isAuthenticated: !!user && !isError,
+    logout,
+  }
 }

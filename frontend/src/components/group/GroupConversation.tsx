@@ -1,6 +1,6 @@
 import { useQuery } from "@tanstack/react-query"
 import { getMessages } from "@/features/groups/messages.api"
-import { useEffect, useRef } from "react"
+import { useLayoutEffect, useRef } from "react"
 
 type Message = {
   _id: string
@@ -17,15 +17,14 @@ type Props = {
   groupId: string
 }
 
-// 🔹 Detect image files
 const isImageFile = (filename: string) => {
   return /\.(jpg|jpeg|png|gif|webp)$/i.test(filename)
 }
 
 export default function GroupConversation({ groupId }: Props) {
+  const containerRef = useRef<HTMLDivElement | null>(null)
   const bottomRef = useRef<HTMLDivElement | null>(null)
 
-  // ✅ Logged-in user (cookie-based auth → user stored in localStorage)
   const currentUser = JSON.parse(
     localStorage.getItem("user") || "null"
   )
@@ -35,12 +34,21 @@ export default function GroupConversation({ groupId }: Props) {
     queryFn: () => getMessages(groupId),
   })
 
-  useEffect(() => {
-    bottomRef.current?.scrollIntoView({ behavior: "smooth" })
+  useLayoutEffect(() => {
+    if (!containerRef.current) return
+    requestAnimationFrame(() => {
+      bottomRef.current?.scrollIntoView({
+        behavior: "smooth",
+        block: "end",
+      })
+    })
   }, [messages])
 
   return (
-    <div className="h-full overflow-y-auto p-4 bg-slate-900">
+    <div
+      ref={containerRef}
+      className="h-full overflow-y-auto p-4 bg-slate-900"
+    >
       {isLoading && <div className="h-full" />}
 
       {!isLoading && messages.length === 0 && (
@@ -64,7 +72,6 @@ export default function GroupConversation({ groupId }: Props) {
               } mb-3`}
             >
               <div className="max-w-[70%]">
-                {/* 🔹 Sender label */}
                 {!isMe && (
                   <div className="text-[11px] mb-1 text-indigo-400">
                     {msg.senderName || msg.senderEmail}
@@ -77,7 +84,6 @@ export default function GroupConversation({ groupId }: Props) {
                   </div>
                 )}
 
-                {/* 🔹 Message bubble */}
                 <div
                   className={`px-4 py-2 rounded-lg text-sm text-white ${
                     isMe
@@ -85,7 +91,6 @@ export default function GroupConversation({ groupId }: Props) {
                       : "bg-slate-800 rounded-bl-none"
                   }`}
                 >
-                  {/* 🖼 Image preview */}
                   {msg.file &&
                     fileUrl &&
                     isImageFile(msg.file.originalName) && (
@@ -98,14 +103,17 @@ export default function GroupConversation({ groupId }: Props) {
                           src={fileUrl}
                           alt={msg.file.originalName}
                           className="max-w-full rounded-md mb-2 cursor-pointer"
+                          onLoad={() =>
+                            bottomRef.current?.scrollIntoView({
+                              behavior: "smooth",
+                            })
+                          }
                         />
                       </a>
                     )}
 
-                  {/* 💬 Text */}
                   {msg.text && <p>{msg.text}</p>}
 
-                  {/* 📎 File */}
                   {msg.file &&
                     fileUrl &&
                     !isImageFile(msg.file.originalName) && (
@@ -123,7 +131,6 @@ export default function GroupConversation({ groupId }: Props) {
             </div>
           )
         })}
-
       <div ref={bottomRef} />
     </div>
   )

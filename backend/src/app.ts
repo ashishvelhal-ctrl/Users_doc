@@ -1,7 +1,7 @@
 import express, { Request, Response, NextFunction } from "express"
 import cors from "cors"
 import { ZodError } from "zod"
-import cookieParser from "cookie-parser" // ✅ ADD
+import cookieParser from "cookie-parser"
 
 import authRoutes from "./routes/auth.routes"
 import userRoutes from "./routes/user.routes"

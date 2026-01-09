@@ -11,7 +11,6 @@ export const createGroup = async (req: Request, res: Response) => {
       })
     }
 
-    // ✅ Ensure ALL members are strings (emails)
     const members = [
       createdBy,
       ...users.filter((u: string) => typeof u === "string"),
@@ -20,8 +19,8 @@ export const createGroup = async (req: Request, res: Response) => {
     const group = await Group.create({
       name,
       description,
-      createdBy,   // ✅ STRING EMAIL
-      members,     // ✅ STRING ARRAY
+      createdBy,   
+      members,     
     })
 
     res.status(201).json(group)

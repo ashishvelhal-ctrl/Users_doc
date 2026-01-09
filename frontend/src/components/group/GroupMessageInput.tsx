@@ -6,7 +6,6 @@ type Props = {
   groupId: string
 }
 
-// 🔹 Helper to detect image files
 const isImageFile = (file: File) => {
   return file.type.startsWith("image/")
 }
@@ -15,7 +14,6 @@ export default function GroupMessageInput({ groupId }: Props) {
   const [text, setText] = useState("")
   const [file, setFile] = useState<File | null>(null)
 
-  // ✅ READ USER FROM localStorage (cookie-based auth)
   const currentUser = JSON.parse(
     localStorage.getItem("user") || "null"
   )
@@ -43,7 +41,6 @@ export default function GroupMessageInput({ groupId }: Props) {
 
     const formData = new FormData()
 
-    // 🔹 senderEmail still required by backend
     formData.append("senderEmail", currentUser.email)
 
     if (text.trim()) {
@@ -59,7 +56,6 @@ export default function GroupMessageInput({ groupId }: Props) {
 
   return (
     <div className="border-t border-slate-700 bg-slate-800 p-3">
-      {/* 🔹 File Preview */}
       {file && (
         <div className="mb-3 flex items-center gap-3 bg-slate-900 p-2 rounded-md">
           {isImageFile(file) ? (
@@ -84,7 +80,6 @@ export default function GroupMessageInput({ groupId }: Props) {
       )}
 
       <div className="flex items-center gap-2">
-        {/* File Picker */}
         <label className="cursor-pointer text-gray-400 hover:text-white">
           📎
           <input
@@ -96,7 +91,6 @@ export default function GroupMessageInput({ groupId }: Props) {
           />
         </label>
 
-        {/* Text Input */}
         <input
           value={text}
           onChange={(e) => setText(e.target.value)}
@@ -110,7 +104,6 @@ export default function GroupMessageInput({ groupId }: Props) {
           }}
         />
 
-        {/* Send Button */}
         <button
           onClick={handleSend}
           disabled={!text.trim() && !file}

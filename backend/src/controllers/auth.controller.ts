@@ -3,7 +3,6 @@ import bcrypt from "bcryptjs"
 import jwt from "jsonwebtoken"
 import { User } from "../models/user.model"
 
-// helpers
 const createAccessToken = (userId: string) =>
   jwt.sign(
     { userId },
@@ -18,7 +17,6 @@ const createRefreshToken = (userId: string) =>
     { expiresIn: "7d" }
   )
 
-// ✅ SIGNUP (almost same)
 export const signup = async (req: Request, res: Response) => {
   const { name, email, password } = req.body
 
@@ -41,7 +39,6 @@ export const signup = async (req: Request, res: Response) => {
   })
 }
 
-// ✅ LOGIN (COOKIE BASED)
 export const login = async (req: Request, res: Response) => {
   const { email, password } = req.body
 
@@ -58,30 +55,26 @@ export const login = async (req: Request, res: Response) => {
   const accessToken = createAccessToken(user._id.toString())
   const refreshToken = createRefreshToken(user._id.toString())
 
-  // save refresh token
   user.refreshToken = refreshToken
   await user.save()
 
-  // ✅ send refresh token as cookie
   res.cookie("refreshToken", refreshToken, {
     httpOnly: true,
-    secure: false, // true in production (HTTPS)
+    secure: false, 
     sameSite: "strict",
     maxAge: 7 * 24 * 60 * 60 * 1000,
   })
 
-  // ❌ DO NOT send token in response
   res.json({
     user: {
       id: user._id,
       name: user.name,
       email: user.email,
     },
-    accessToken, // optional (can keep only in memory)
+    accessToken, 
   })
 }
 
-// ✅ REFRESH ACCESS TOKEN
 export const refreshToken = async (req: Request, res: Response) => {
   const token = req.cookies.refreshToken
   if (!token) return res.sendStatus(401)
@@ -104,7 +97,6 @@ export const refreshToken = async (req: Request, res: Response) => {
   }
 }
 
-// ✅ LOGOUT
 export const logout = async (req: Request, res: Response) => {
   const token = req.cookies.refreshToken
 
@@ -148,7 +140,6 @@ export const me = async (req: Request, res: Response) => {
   }
 }
 
-// unchanged
 export const getAllUsers = async (_req: Request, res: Response) => {
   const users = await User.find()
     .select("_id name email")

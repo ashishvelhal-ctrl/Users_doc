@@ -48,8 +48,6 @@ export default function CreateGroup() {
 
     try {
       setLoading(true)
-
-      // ✅ Convert selected user IDs → EMAILS
       const memberEmails = users
         .filter((u) => selectedUsers.includes(u._id))
         .map((u) => u.email)
@@ -57,8 +55,8 @@ export default function CreateGroup() {
       const payload = {
         name: groupName,
         description,
-        users: memberEmails,              // ✅ EMAIL ARRAY
-        createdBy: currentUser.email,     // ✅ EMAIL STRING
+        users: memberEmails,             
+        createdBy: currentUser.email,    
       }
 
       const res = await fetch("http://localhost:5000/api/groups", {
@@ -89,8 +87,6 @@ export default function CreateGroup() {
       <h2 className="text-xl font-semibold mb-4">
         Create Group
       </h2>
-
-      {/* Creator Info */}
       <div className="mb-4 p-3 bg-slate-800 border border-slate-700 rounded">
         <p className="text-xs text-gray-400 mb-1">
           Created By

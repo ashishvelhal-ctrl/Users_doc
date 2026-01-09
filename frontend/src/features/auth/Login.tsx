@@ -16,7 +16,7 @@ export default function Login() {
       const res = await fetch("http://localhost:5000/api/auth/login", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        credentials: "include", // ✅ COOKIE ENABLED
+        credentials: "include",
         body: JSON.stringify({ email, password }),
       })
 
@@ -25,8 +25,6 @@ export default function Login() {
     },
 
     onSuccess: (data) => {
-      // ❌ NO TOKEN STORAGE
-      // ✅ ONLY USER INFO (UI PURPOSE)
       localStorage.setItem("user", JSON.stringify(data.user))
 
       navigate({ to: "/app/dashboard" })
