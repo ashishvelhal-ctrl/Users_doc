@@ -13,9 +13,22 @@ export type Message = {
 }
 
 export const getMessages = async (
-  groupId: string
-): Promise<Message[]> => {
-  const res = await api.get(`/messages/${groupId}`)
+  groupId: string,
+  params?: {
+    limit?: number
+    cursor?: string | null
+  }
+): Promise<{
+  messages: Message[]
+  nextCursor?: string
+}> => {
+  const res = await api.get(`/messages/${groupId}`, {
+    params: {
+      limit: params?.limit ?? 10,
+      cursor: params?.cursor ?? undefined,
+    },
+  })
+
   return res.data
 }
 

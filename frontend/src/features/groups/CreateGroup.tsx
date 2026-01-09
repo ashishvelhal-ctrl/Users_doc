@@ -1,5 +1,7 @@
-import { useState } from "react"
+import { useEffect, useMemo, useState } from "react"
 import { useQuery } from "@tanstack/react-query"
+import API from "@/features/auth/auth.api"
+import { useAuth } from "@/hooks/useAuth"
 
 type User = {
   _id: string
@@ -8,19 +10,17 @@ type User = {
 }
 
 async function fetchUsers(): Promise<User[]> {
-  const res = await fetch("http://localhost:5000/api/users")
-  if (!res.ok) throw new Error("Failed to load users")
-  return res.json()
+  const res = await API.get("/users")
+  return res.data
 }
 
-const currentUser = JSON.parse(
-  sessionStorage.getItem("user") || "{}"
-)
-
 export default function CreateGroup() {
+  const { user } = useAuth()
+
   const [groupName, setGroupName] = useState("")
   const [description, setDescription] = useState("")
   const [selectedUsers, setSelectedUsers] = useState<string[]>([])
+  const [search, setSearch] = useState("")
   const [loading, setLoading] = useState(false)
 
   const {
@@ -32,7 +32,16 @@ export default function CreateGroup() {
     queryFn: fetchUsers,
   })
 
+  // ✅ Auto-select creator
+  useEffect(() => {
+    if (user?._id) {
+      setSelectedUsers([user._id])
+    }
+  }, [user])
+
   const toggleUser = (id: string) => {
+    if (id === user?._id) return
+
     setSelectedUsers((prev) =>
       prev.includes(id)
         ? prev.filter((u) => u !== id)
@@ -40,38 +49,34 @@ export default function CreateGroup() {
     )
   }
 
+  // 🔍 Filter users by search
+  const filteredUsers = useMemo(() => {
+    return users.filter(
+      (u) =>
+        u.name.toLowerCase().includes(search.toLowerCase()) ||
+        u.email.toLowerCase().includes(search.toLowerCase())
+    )
+  }, [users, search])
+
   const handleCreate = async () => {
-    if (!currentUser?.email) {
-      alert("User not logged in")
+    if (!user) {
+      alert("Not authenticated")
       return
     }
 
     try {
       setLoading(true)
-      const memberEmails = users
-        .filter((u) => selectedUsers.includes(u._id))
-        .map((u) => u.email)
 
-      const payload = {
+      await API.post("/groups", {
         name: groupName,
         description,
-        users: memberEmails,             
-        createdBy: currentUser.email,    
-      }
-
-      const res = await fetch("http://localhost:5000/api/groups", {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-        },
-        body: JSON.stringify(payload),
+        members: selectedUsers,
       })
-
-      if (!res.ok) throw new Error("Create failed")
 
       setGroupName("")
       setDescription("")
-      setSelectedUsers([])
+      setSelectedUsers([user._id])
+      setSearch("")
 
       alert("Group created successfully ✅")
     } catch (err) {
@@ -87,17 +92,20 @@ export default function CreateGroup() {
       <h2 className="text-xl font-semibold mb-4">
         Create Group
       </h2>
-      <div className="mb-4 p-3 bg-slate-800 border border-slate-700 rounded">
-        <p className="text-xs text-gray-400 mb-1">
-          Created By
-        </p>
-        <p className="text-sm font-medium">
-          {currentUser.name || "Unknown User"}
-        </p>
-        <p className="text-xs text-gray-400">
-          {currentUser.email || ""}
-        </p>
-      </div>
+
+      {user && (
+        <div className="mb-4 p-3 bg-slate-800 border border-slate-700 rounded">
+          <p className="text-xs text-gray-400 mb-1">
+            Created By
+          </p>
+          <p className="text-sm font-medium">
+            {user.name}
+          </p>
+          <p className="text-xs text-gray-400">
+            {user.email}
+          </p>
+        </div>
+      )}
 
       <input
         value={groupName}
@@ -111,6 +119,14 @@ export default function CreateGroup() {
         onChange={(e) => setDescription(e.target.value)}
         placeholder="Description"
         className="w-full p-2 mb-4 bg-slate-800 border border-slate-700 rounded"
+      />
+
+      {/* 🔍 Search Users */}
+      <input
+        value={search}
+        onChange={(e) => setSearch(e.target.value)}
+        placeholder="Search users..."
+        className="w-full p-2 mb-3 bg-slate-800 border border-slate-700 rounded text-sm"
       />
 
       <div className="mb-4">
@@ -131,24 +147,34 @@ export default function CreateGroup() {
             </p>
           )}
 
-          {users.map((user) => (
-            <label
-              key={user._id}
-              className="flex items-center gap-2 px-3 py-2 hover:bg-slate-700 cursor-pointer"
-            >
-              <input
-                type="checkbox"
-                checked={selectedUsers.includes(user._id)}
-                onChange={() => toggleUser(user._id)}
-              />
-              <span className="text-sm">
-                {user.name}
-                <span className="text-gray-400 text-xs">
-                  {" "}({user.email})
+          {filteredUsers.map((u) => {
+            const isCreator = u._id === user?._id
+
+            return (
+              <label
+                key={u._id}
+                className="flex items-center gap-2 px-3 py-2 hover:bg-slate-700 cursor-pointer"
+              >
+                <input
+                  type="checkbox"
+                  checked={selectedUsers.includes(u._id)}
+                  disabled={isCreator}
+                  onChange={() => toggleUser(u._id)}
+                />
+                <span className="text-sm">
+                  {u.name}
+                  <span className="text-gray-400 text-xs">
+                    {" "}({u.email})
+                  </span>
+                  {isCreator && (
+                    <span className="ml-2 text-xs text-indigo-400">
+                      (You)
+                    </span>
+                  )}
                 </span>
-              </span>
-            </label>
-          ))}
+              </label>
+            )
+          })}
         </div>
       </div>
 
