@@ -17,6 +17,7 @@ type Props = {
   groupId: string
 }
 
+// 🔹 Detect image files
 const isImageFile = (filename: string) => {
   return /\.(jpg|jpeg|png|gif|webp)$/i.test(filename)
 }
@@ -24,9 +25,9 @@ const isImageFile = (filename: string) => {
 export default function GroupConversation({ groupId }: Props) {
   const bottomRef = useRef<HTMLDivElement | null>(null)
 
-  // ✅ CURRENT LOGGED-IN USER
+  // ✅ Logged-in user (cookie-based auth → user stored in localStorage)
   const currentUser = JSON.parse(
-    sessionStorage.getItem("user") || "null"
+    localStorage.getItem("user") || "null"
   )
 
   const { data: messages = [], isLoading } = useQuery<Message[]>({
@@ -50,7 +51,6 @@ export default function GroupConversation({ groupId }: Props) {
 
       {!isLoading &&
         messages.map((msg) => {
-          // ✅ ALIGNMENT LOGIC
           const isMe = msg.senderEmail === currentUser?.email
           const fileUrl = msg.file
             ? `http://localhost:5000${msg.file.url}`
@@ -61,21 +61,23 @@ export default function GroupConversation({ groupId }: Props) {
               key={msg._id}
               className={`flex ${
                 isMe ? "justify-end" : "justify-start"
-              } mb-2`}
+              } mb-3`}
             >
               <div className="max-w-[70%]">
-                {/* Sender name */}
-                <div
-                  className={`text-[11px] mb-1 ${
-                    isMe
-                      ? "text-right text-indigo-300"
-                      : "text-indigo-400"
-                  }`}
-                >
-                  {msg.senderName || msg.senderEmail}
-                </div>
+                {/* 🔹 Sender label */}
+                {!isMe && (
+                  <div className="text-[11px] mb-1 text-indigo-400">
+                    {msg.senderName || msg.senderEmail}
+                  </div>
+                )}
 
-                {/* Message bubble */}
+                {isMe && (
+                  <div className="text-[11px] mb-1 text-right text-indigo-300">
+                    You
+                  </div>
+                )}
+
+                {/* 🔹 Message bubble */}
                 <div
                   className={`px-4 py-2 rounded-lg text-sm text-white ${
                     isMe
@@ -83,7 +85,7 @@ export default function GroupConversation({ groupId }: Props) {
                       : "bg-slate-800 rounded-bl-none"
                   }`}
                 >
-                  {/* Image preview */}
+                  {/* 🖼 Image preview */}
                   {msg.file &&
                     fileUrl &&
                     isImageFile(msg.file.originalName) && (
@@ -100,10 +102,10 @@ export default function GroupConversation({ groupId }: Props) {
                       </a>
                     )}
 
-                  {/* Text */}
+                  {/* 💬 Text */}
                   {msg.text && <p>{msg.text}</p>}
 
-                  {/* File */}
+                  {/* 📎 File */}
                   {msg.file &&
                     fileUrl &&
                     !isImageFile(msg.file.originalName) && (

@@ -4,6 +4,7 @@ export interface IUser extends Document {
   name: string
   email: string
   password: string
+  refreshToken?: string | null 
 }
 
 const userSchema = new Schema<IUser>(
@@ -23,6 +24,11 @@ const userSchema = new Schema<IUser>(
     password: {
       type: String,
       required: true,
+    },
+
+    refreshToken: {
+      type: String,
+      default: null,
     },
   },
   { timestamps: true }
