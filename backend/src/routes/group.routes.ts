@@ -1,15 +1,16 @@
 import { Router } from "express"
-import { protect } from "../middlewares/auth.middleware"
 import {
   createGroup,
-  getMyGroups,
-  addMember,
+  getGroups,
+  addMemberToGroup,getGroupById,
 } from "../controllers/group.controller"
 
 const router = Router()
 
-router.post("/", protect, createGroup)
-router.get("/", protect, getMyGroups)
-router.post("/:groupId/add-member", protect, addMember)
+router.post("/", createGroup)
+router.get("/", getGroups)
+router.post("/:groupId/add-member", addMemberToGroup)
+router.get("/:groupId", getGroupById)
+
 
 export default router

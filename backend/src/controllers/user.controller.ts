@@ -3,6 +3,16 @@ import bcrypt from "bcryptjs"
 import jwt from "jsonwebtoken"
 import User from "../models/user.model"
 
+
+export const getAllUsers = async (req: Request, res: Response) => {
+  try {
+    const users = await User.find().select("_id name email")
+    res.json(users)
+  } catch (error) {
+    res.status(500).json({ message: "Failed to fetch users" })
+  }
+}
+
 export const signup = async (req: Request, res: Response) => {
   const { name, email, password } = req.body
 

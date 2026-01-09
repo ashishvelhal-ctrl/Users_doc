@@ -1,95 +1,151 @@
-import { useState } from "react";
+import { useState } from "react"
+import { useQuery } from "@tanstack/react-query"
 
-const CreateGroup = () => {
-  const [groupName, setGroupName] = useState("");
-  const [description, setDescription] = useState("");
-  const [image, setImage] = useState<File | null>(null);
+type User = {
+  _id: string
+  name: string
+  email: string
+}
+async function fetchUsers(): Promise<User[]> {
+  const res = await fetch("http://localhost:5000/api/users")
+  if (!res.ok) throw new Error("Failed to load users")
+  return res.json()
+}
+const currentUser = JSON.parse(
+  sessionStorage.getItem("user") || "{}"
+)
 
-  const handleSubmit = (e: React.FormEvent) => {
-    e.preventDefault();
 
-    // This is where backend API call will go later
-    const formData = new FormData();
-    formData.append("groupName", groupName);
-    formData.append("description", description);
-    if (image) {
-      formData.append("image", image);
+export default function CreateGroup() {
+  const [groupName, setGroupName] = useState("")
+  const [description, setDescription] = useState("")
+  const [selectedUsers, setSelectedUsers] = useState<string[]>([])
+  const [loading, setLoading] = useState(false)
+
+  const { data: users = [], isLoading, isError } = useQuery({
+    queryKey: ["users"],
+    queryFn: fetchUsers,
+  })
+  const toggleUser = (id: string) => {
+    setSelectedUsers((prev) =>
+      prev.includes(id)
+        ? prev.filter((u) => u !== id)
+        : [...prev, id]
+    )
+  }
+  const handleCreate = async () => {
+    if (!currentUser?.email) {
+      alert("User not logged in")
+      return
     }
 
-    console.log("Group Data:", {
-      groupName,
-      description,
-      image,
-    });
+    try {
+      setLoading(true)
 
-    alert("Group created (frontend only for now)");
-  };
+      const payload = {
+        name: groupName,
+        description,
+        users: selectedUsers,
+        createdBy: {
+          name: currentUser.name,
+          email: currentUser.email,
+        },
+      }
+
+      const res = await fetch("http://localhost:5000/api/groups", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify(payload),
+      })
+
+      if (!res.ok) throw new Error("Create failed")
+      setGroupName("")
+      setDescription("")
+      setSelectedUsers([])
+
+      alert("Group created successfully ✅")
+    } catch (err) {
+      alert("Failed to create group ❌")
+    } finally {
+      setLoading(false)
+    }
+  }
 
   return (
-    <div
-      style={{
-        maxWidth: 500,
-        margin: "40px auto",
-        padding: 20,
-        border: "1px solid #ddd",
-        borderRadius: 8,
-      }}
-    >
-      <h2>Create Group</h2>
+    <div className="max-w-xl mx-auto bg-slate-900 p-6 rounded-lg text-white">
+      <h2 className="text-xl font-semibold mb-4">
+        Create Group
+      </h2>
+      <div className="mb-4 p-3 bg-slate-800 border border-slate-700 rounded">
+        <p className="text-xs text-gray-400 mb-1">
+          Created By
+        </p>
+        <p className="text-sm font-medium">
+          {currentUser.name || "Unknown User"}
+        </p>
+        <p className="text-xs text-gray-400">
+          {currentUser.email || ""}
+        </p>
+      </div>
+      <input
+        value={groupName}
+        onChange={(e) => setGroupName(e.target.value)}
+        placeholder="Group Name"
+        className="w-full p-2 mb-3 bg-slate-800 border border-slate-700 rounded"
+      />
+      <textarea
+        value={description}
+        onChange={(e) => setDescription(e.target.value)}
+        placeholder="Description"
+        className="w-full p-2 mb-4 bg-slate-800 border border-slate-700 rounded"
+      />
+      <div className="mb-4">
+        <p className="text-sm text-gray-400 mb-2">
+          Add Users
+        </p>
 
-      <form onSubmit={handleSubmit}>
-        {/* Group Name */}
-        <div style={{ marginBottom: 12 }}>
-          <label>Group Name</label>
-          <input
-            type="text"
-            value={groupName}
-            onChange={(e) => setGroupName(e.target.value)}
-            required
-            style={{ width: "100%", padding: 8 }}
-          />
+        <div className="max-h-48 overflow-y-auto border border-slate-700 rounded bg-slate-800">
+          {isLoading && (
+            <p className="p-3 text-gray-400">
+              Loading users...
+            </p>
+          )}
+
+          {isError && (
+            <p className="p-3 text-red-400">
+              Failed to load users
+            </p>
+          )}
+
+          {users.map((user) => (
+            <label
+              key={user._id}
+              className="flex items-center gap-2 px-3 py-2 hover:bg-slate-700 cursor-pointer"
+            >
+              <input
+                type="checkbox"
+                checked={selectedUsers.includes(user._id)}
+                onChange={() => toggleUser(user._id)}
+              />
+              <span className="text-sm">
+                {user.name}
+                <span className="text-gray-400 text-xs">
+                  {" "}({user.email})
+                </span>
+              </span>
+            </label>
+          ))}
         </div>
-
-        {/* Description */}
-        <div style={{ marginBottom: 12 }}>
-          <label>Description</label>
-          <textarea
-            value={description}
-            onChange={(e) => setDescription(e.target.value)}
-            rows={3}
-            style={{ width: "100%", padding: 8 }}
-          />
-        </div>
-
-        {/* Image Upload */}
-        <div style={{ marginBottom: 12 }}>
-          <label>Group Image</label>
-          <input
-            type="file"
-            accept="image/*"
-            onChange={(e) =>
-              setImage(e.target.files ? e.target.files[0] : null)
-            }
-          />
-        </div>
-
-        {/* Submit */}
-        <button
-          type="submit"
-          style={{
-            padding: "8px 16px",
-            background: "#2563eb",
-            color: "white",
-            border: "none",
-            borderRadius: 4,
-            cursor: "pointer",
-          }}
-        >
-          Create Group
-        </button>
-      </form>
+      </div>
+      <button
+        onClick={handleCreate}
+        disabled={!groupName || loading}
+        className="bg-indigo-600 hover:bg-indigo-700 disabled:opacity-50 px-4 py-2 rounded w-full"
+      >
+        {loading ? "Creating..." : "Create Group"}
+      </button>
     </div>
-  );
-};
-
-export default CreateGroup;
+  )
+}

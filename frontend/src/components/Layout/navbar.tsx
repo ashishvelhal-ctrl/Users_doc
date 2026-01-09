@@ -1,42 +1,28 @@
-import { Link } from "@tanstack/react-router"
+import { useNavigate } from "@tanstack/react-router"
 
-export default function Navbar() {
+type NavbarProps = {
+  onCreateGroup?: () => void
+}
+
+export default function Navbar({ onCreateGroup }: NavbarProps) {
+  const navigate = useNavigate()
+
+  const handleCreateGroup = () => {
+    onCreateGroup?.()
+
+    navigate({ to: "/app/groups/create" })
+  }
+
   return (
-    <header className="w-full bg-slate-900 border-b border-slate-800">
-      <div className="max-w-7xl mx-auto px-6 py-4 flex items-center justify-between">
-        
-        {/* Logo */}
-        <Link
-          to="/"
-          className="text-xl font-semibold text-white hover:text-indigo-400 transition"
-        >
-          MyApp
-        </Link>
+    <header className="h-14 bg-black border-b border-gray-800 flex items-center justify-between px-6">
+      <h1 className="font-semibold text-white">Dashboard</h1>
 
-        {/* Navigation */}
-        <nav className="flex items-center gap-6 text-sm">
-          <Link
-            to="/dashboard"
-            className="text-gray-300 hover:text-white transition"
-          >
-            Dashboard
-          </Link>
-
-          <Link
-            to="/group/create"
-            className="text-gray-300 hover:text-white transition"
-          >
-            Create Group
-          </Link>
-
-          <Link
-            to="/auth/login"
-            className="px-4 py-2 rounded-md bg-indigo-600 text-white hover:bg-indigo-700 transition"
-          >
-            Login
-          </Link>
-        </nav>
-      </div>
+      <button
+        onClick={handleCreateGroup}
+        className="bg-indigo-600 px-4 py-2 rounded text-sm text-white hover:bg-indigo-700 transition"
+      >
+        + Create Group
+      </button>
     </header>
   )
 }

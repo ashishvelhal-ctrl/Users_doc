@@ -1,38 +1,74 @@
 import { Link } from "@tanstack/react-router"
+import { useQuery } from "@tanstack/react-query"
+
+type Group = {
+  _id: string
+  name: string
+}
+
+async function fetchGroups(): Promise<Group[]> {
+  const res = await fetch("http://localhost:5000/api/groups")
+  if (!res.ok) throw new Error("Failed to load groups")
+  return res.json()
+}
 
 export default function Sidebar() {
+  const {
+    data: groups = [],
+    isLoading,
+    isError,
+  } = useQuery({
+    queryKey: ["groups"],
+    queryFn: fetchGroups,
+  })
+
   return (
-    <aside className="w-64 bg-black text-white border-r border-gray-800 min-h-screen p-4">
-      
-      {/* Dashboard */}
-      <div className="mb-6">
-        <h3 className="text-xs uppercase text-gray-400 mb-2">Dashboard</h3>
+    <aside className="w-64 bg-black text-white border-r border-gray-800 p-4">
+      <div className="mb-4">
         <Link
           to="/app/dashboard"
-          className="block px-3 py-2 rounded-md text-gray-200 hover:bg-gray-800"
+          className="block px-3 py-2 rounded-md hover:bg-gray-800"
         >
-          Home
+          Dashboard
         </Link>
       </div>
-
-      {/* Users */}
-      <div className="mb-6">
-        <h3 className="text-xs uppercase text-gray-400 mb-2">Users</h3>
-        <p className="text-xs text-gray-500 italic">
-          Users will load from API
+      <div className="mb-4">
+        <p className="px-3 text-xs uppercase text-gray-400 mb-2">
+          Groups
         </p>
+
+        {isLoading && (
+          <p className="px-3 text-sm text-gray-500">
+            Loading groups...
+          </p>
+        )}
+
+        {isError && (
+          <p className="px-3 text-sm text-red-400">
+            Failed to load groups
+          </p>
+        )}
+
+        {!isLoading && groups.length === 0 && (
+          <p className="px-3 text-sm text-gray-500">
+            No groups yet
+          </p>
+        )}
+
+        {groups.map((group) => (
+          <Link
+            key={group._id}
+            to={`/app/groups/${group._id}`}
+            className="block px-3 py-2 text-sm rounded-md hover:bg-gray-800"
+          >
+            {group.name}
+          </Link>
+        ))}
       </div>
-
-      {/* Groups */}
-      <div className="mb-6">
-        <h3 className="text-xs uppercase text-gray-400 mb-2">Groups</h3>
-        <p className="text-xs text-gray-500 italic">
-          Groups will load from API
-        </p>
-
+      <div className="mt-6">
         <Link
-          to="/group/create"
-          className="mt-3 block text-sm text-indigo-400 hover:text-indigo-300"
+          to="/app/groups/create"
+          className="block px-3 py-2 text-sm text-indigo-400 hover:text-indigo-300 hover:bg-gray-800 rounded-md"
         >
           + Create Group
         </Link>

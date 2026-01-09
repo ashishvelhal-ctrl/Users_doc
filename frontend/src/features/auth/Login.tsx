@@ -23,15 +23,21 @@ export default function Login() {
       if (!res.ok) throw new Error("Invalid credentials")
       return res.json()
     },
-    onSuccess: () => {
-  navigate({ to: "/app/dashboard" })
-},
+
+    onSuccess: (data) => {
+      sessionStorage.setItem("token", data.token)
+      sessionStorage.setItem("user", JSON.stringify(data.user))
+
+      navigate({ to: "/app/dashboard" })
+    },
   })
 
   return (
     <Card className="w-full max-w-md bg-slate-900 text-white">
       <CardHeader>
-        <CardTitle className="text-center text-2xl">Login</CardTitle>
+        <CardTitle className="text-center text-2xl">
+          Login
+        </CardTitle>
       </CardHeader>
 
       <CardContent className="space-y-4">

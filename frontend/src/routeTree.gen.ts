@@ -9,30 +9,24 @@
 // Additionally, you should also exclude this file from your linter and/or formatter to prevent it from being checked or modified.
 
 import { Route as rootRouteImport } from './routes/__root'
+import { Route as AppRouteImport } from './routes/app'
 import { Route as IndexRouteImport } from './routes/index'
-import { Route as GroupDetailedGroupIdRouteImport } from './routes/group/detailedGroupId'
-import { Route as GroupCreateRouteImport } from './routes/group/create'
 import { Route as AuthSignupRouteImport } from './routes/auth/signup'
 import { Route as AuthLoginRouteImport } from './routes/auth/login'
 import { Route as Auth_layoutRouteImport } from './routes/auth/__layout'
-import { Route as App_layoutRouteImport } from './routes/app/__layout'
-import { Route as AppDashboardIndexRouteImport } from './routes/app/dashboard/index'
-import { Route as AppDashboardUsersRouteImport } from './routes/app/dashboard/users'
-import { Route as AppDashboardGroupRouteImport } from './routes/app/dashboard/group'
+import { Route as AppUsersRouteImport } from './routes/app/users'
+import { Route as AppDashboardRouteImport } from './routes/app/dashboard'
+import { Route as AppGroupsCreateRouteImport } from './routes/app/groups/create'
+import { Route as AppGroupsGroupIdRouteImport } from './routes/app/groups/$groupId'
 
+const AppRoute = AppRouteImport.update({
+  id: '/app',
+  path: '/app',
+  getParentRoute: () => rootRouteImport,
+} as any)
 const IndexRoute = IndexRouteImport.update({
   id: '/',
   path: '/',
-  getParentRoute: () => rootRouteImport,
-} as any)
-const GroupDetailedGroupIdRoute = GroupDetailedGroupIdRouteImport.update({
-  id: '/group/detailedGroupId',
-  path: '/group/detailedGroupId',
-  getParentRoute: () => rootRouteImport,
-} as any)
-const GroupCreateRoute = GroupCreateRouteImport.update({
-  id: '/group/create',
-  path: '/group/create',
   getParentRoute: () => rootRouteImport,
 } as any)
 const AuthSignupRoute = AuthSignupRouteImport.update({
@@ -50,137 +44,119 @@ const Auth_layoutRoute = Auth_layoutRouteImport.update({
   path: '/auth',
   getParentRoute: () => rootRouteImport,
 } as any)
-const App_layoutRoute = App_layoutRouteImport.update({
-  id: '/app/__layout',
-  path: '/app',
-  getParentRoute: () => rootRouteImport,
+const AppUsersRoute = AppUsersRouteImport.update({
+  id: '/users',
+  path: '/users',
+  getParentRoute: () => AppRoute,
 } as any)
-const AppDashboardIndexRoute = AppDashboardIndexRouteImport.update({
-  id: '/app/dashboard/',
-  path: '/app/dashboard/',
-  getParentRoute: () => rootRouteImport,
+const AppDashboardRoute = AppDashboardRouteImport.update({
+  id: '/dashboard',
+  path: '/dashboard',
+  getParentRoute: () => AppRoute,
 } as any)
-const AppDashboardUsersRoute = AppDashboardUsersRouteImport.update({
-  id: '/app/dashboard/users',
-  path: '/app/dashboard/users',
-  getParentRoute: () => rootRouteImport,
+const AppGroupsCreateRoute = AppGroupsCreateRouteImport.update({
+  id: '/groups/create',
+  path: '/groups/create',
+  getParentRoute: () => AppRoute,
 } as any)
-const AppDashboardGroupRoute = AppDashboardGroupRouteImport.update({
-  id: '/app/dashboard/group',
-  path: '/app/dashboard/group',
-  getParentRoute: () => rootRouteImport,
+const AppGroupsGroupIdRoute = AppGroupsGroupIdRouteImport.update({
+  id: '/groups/$groupId',
+  path: '/groups/$groupId',
+  getParentRoute: () => AppRoute,
 } as any)
 
 export interface FileRoutesByFullPath {
   '/': typeof IndexRoute
-  '/app': typeof App_layoutRoute
+  '/app': typeof AppRouteWithChildren
+  '/app/dashboard': typeof AppDashboardRoute
+  '/app/users': typeof AppUsersRoute
   '/auth': typeof Auth_layoutRoute
   '/auth/login': typeof AuthLoginRoute
   '/auth/signup': typeof AuthSignupRoute
-  '/group/create': typeof GroupCreateRoute
-  '/group/detailedGroupId': typeof GroupDetailedGroupIdRoute
-  '/app/dashboard/group': typeof AppDashboardGroupRoute
-  '/app/dashboard/users': typeof AppDashboardUsersRoute
-  '/app/dashboard': typeof AppDashboardIndexRoute
+  '/app/groups/$groupId': typeof AppGroupsGroupIdRoute
+  '/app/groups/create': typeof AppGroupsCreateRoute
 }
 export interface FileRoutesByTo {
   '/': typeof IndexRoute
-  '/app': typeof App_layoutRoute
+  '/app': typeof AppRouteWithChildren
+  '/app/dashboard': typeof AppDashboardRoute
+  '/app/users': typeof AppUsersRoute
   '/auth': typeof Auth_layoutRoute
   '/auth/login': typeof AuthLoginRoute
   '/auth/signup': typeof AuthSignupRoute
-  '/group/create': typeof GroupCreateRoute
-  '/group/detailedGroupId': typeof GroupDetailedGroupIdRoute
-  '/app/dashboard/group': typeof AppDashboardGroupRoute
-  '/app/dashboard/users': typeof AppDashboardUsersRoute
-  '/app/dashboard': typeof AppDashboardIndexRoute
+  '/app/groups/$groupId': typeof AppGroupsGroupIdRoute
+  '/app/groups/create': typeof AppGroupsCreateRoute
 }
 export interface FileRoutesById {
   __root__: typeof rootRouteImport
   '/': typeof IndexRoute
-  '/app/__layout': typeof App_layoutRoute
+  '/app': typeof AppRouteWithChildren
+  '/app/dashboard': typeof AppDashboardRoute
+  '/app/users': typeof AppUsersRoute
   '/auth/__layout': typeof Auth_layoutRoute
   '/auth/login': typeof AuthLoginRoute
   '/auth/signup': typeof AuthSignupRoute
-  '/group/create': typeof GroupCreateRoute
-  '/group/detailedGroupId': typeof GroupDetailedGroupIdRoute
-  '/app/dashboard/group': typeof AppDashboardGroupRoute
-  '/app/dashboard/users': typeof AppDashboardUsersRoute
-  '/app/dashboard/': typeof AppDashboardIndexRoute
+  '/app/groups/$groupId': typeof AppGroupsGroupIdRoute
+  '/app/groups/create': typeof AppGroupsCreateRoute
 }
 export interface FileRouteTypes {
   fileRoutesByFullPath: FileRoutesByFullPath
   fullPaths:
     | '/'
     | '/app'
+    | '/app/dashboard'
+    | '/app/users'
     | '/auth'
     | '/auth/login'
     | '/auth/signup'
-    | '/group/create'
-    | '/group/detailedGroupId'
-    | '/app/dashboard/group'
-    | '/app/dashboard/users'
-    | '/app/dashboard'
+    | '/app/groups/$groupId'
+    | '/app/groups/create'
   fileRoutesByTo: FileRoutesByTo
   to:
     | '/'
     | '/app'
+    | '/app/dashboard'
+    | '/app/users'
     | '/auth'
     | '/auth/login'
     | '/auth/signup'
-    | '/group/create'
-    | '/group/detailedGroupId'
-    | '/app/dashboard/group'
-    | '/app/dashboard/users'
-    | '/app/dashboard'
+    | '/app/groups/$groupId'
+    | '/app/groups/create'
   id:
     | '__root__'
     | '/'
-    | '/app/__layout'
+    | '/app'
+    | '/app/dashboard'
+    | '/app/users'
     | '/auth/__layout'
     | '/auth/login'
     | '/auth/signup'
-    | '/group/create'
-    | '/group/detailedGroupId'
-    | '/app/dashboard/group'
-    | '/app/dashboard/users'
-    | '/app/dashboard/'
+    | '/app/groups/$groupId'
+    | '/app/groups/create'
   fileRoutesById: FileRoutesById
 }
 export interface RootRouteChildren {
   IndexRoute: typeof IndexRoute
-  App_layoutRoute: typeof App_layoutRoute
+  AppRoute: typeof AppRouteWithChildren
   Auth_layoutRoute: typeof Auth_layoutRoute
   AuthLoginRoute: typeof AuthLoginRoute
   AuthSignupRoute: typeof AuthSignupRoute
-  GroupCreateRoute: typeof GroupCreateRoute
-  GroupDetailedGroupIdRoute: typeof GroupDetailedGroupIdRoute
-  AppDashboardGroupRoute: typeof AppDashboardGroupRoute
-  AppDashboardUsersRoute: typeof AppDashboardUsersRoute
-  AppDashboardIndexRoute: typeof AppDashboardIndexRoute
 }
 
 declare module '@tanstack/react-router' {
   interface FileRoutesByPath {
+    '/app': {
+      id: '/app'
+      path: '/app'
+      fullPath: '/app'
+      preLoaderRoute: typeof AppRouteImport
+      parentRoute: typeof rootRouteImport
+    }
     '/': {
       id: '/'
       path: '/'
       fullPath: '/'
       preLoaderRoute: typeof IndexRouteImport
-      parentRoute: typeof rootRouteImport
-    }
-    '/group/detailedGroupId': {
-      id: '/group/detailedGroupId'
-      path: '/group/detailedGroupId'
-      fullPath: '/group/detailedGroupId'
-      preLoaderRoute: typeof GroupDetailedGroupIdRouteImport
-      parentRoute: typeof rootRouteImport
-    }
-    '/group/create': {
-      id: '/group/create'
-      path: '/group/create'
-      fullPath: '/group/create'
-      preLoaderRoute: typeof GroupCreateRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/auth/signup': {
@@ -204,48 +180,59 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof Auth_layoutRouteImport
       parentRoute: typeof rootRouteImport
     }
-    '/app/__layout': {
-      id: '/app/__layout'
-      path: '/app'
-      fullPath: '/app'
-      preLoaderRoute: typeof App_layoutRouteImport
-      parentRoute: typeof rootRouteImport
+    '/app/users': {
+      id: '/app/users'
+      path: '/users'
+      fullPath: '/app/users'
+      preLoaderRoute: typeof AppUsersRouteImport
+      parentRoute: typeof AppRoute
     }
-    '/app/dashboard/': {
-      id: '/app/dashboard/'
-      path: '/app/dashboard'
+    '/app/dashboard': {
+      id: '/app/dashboard'
+      path: '/dashboard'
       fullPath: '/app/dashboard'
-      preLoaderRoute: typeof AppDashboardIndexRouteImport
-      parentRoute: typeof rootRouteImport
+      preLoaderRoute: typeof AppDashboardRouteImport
+      parentRoute: typeof AppRoute
     }
-    '/app/dashboard/users': {
-      id: '/app/dashboard/users'
-      path: '/app/dashboard/users'
-      fullPath: '/app/dashboard/users'
-      preLoaderRoute: typeof AppDashboardUsersRouteImport
-      parentRoute: typeof rootRouteImport
+    '/app/groups/create': {
+      id: '/app/groups/create'
+      path: '/groups/create'
+      fullPath: '/app/groups/create'
+      preLoaderRoute: typeof AppGroupsCreateRouteImport
+      parentRoute: typeof AppRoute
     }
-    '/app/dashboard/group': {
-      id: '/app/dashboard/group'
-      path: '/app/dashboard/group'
-      fullPath: '/app/dashboard/group'
-      preLoaderRoute: typeof AppDashboardGroupRouteImport
-      parentRoute: typeof rootRouteImport
+    '/app/groups/$groupId': {
+      id: '/app/groups/$groupId'
+      path: '/groups/$groupId'
+      fullPath: '/app/groups/$groupId'
+      preLoaderRoute: typeof AppGroupsGroupIdRouteImport
+      parentRoute: typeof AppRoute
     }
   }
 }
 
+interface AppRouteChildren {
+  AppDashboardRoute: typeof AppDashboardRoute
+  AppUsersRoute: typeof AppUsersRoute
+  AppGroupsGroupIdRoute: typeof AppGroupsGroupIdRoute
+  AppGroupsCreateRoute: typeof AppGroupsCreateRoute
+}
+
+const AppRouteChildren: AppRouteChildren = {
+  AppDashboardRoute: AppDashboardRoute,
+  AppUsersRoute: AppUsersRoute,
+  AppGroupsGroupIdRoute: AppGroupsGroupIdRoute,
+  AppGroupsCreateRoute: AppGroupsCreateRoute,
+}
+
+const AppRouteWithChildren = AppRoute._addFileChildren(AppRouteChildren)
+
 const rootRouteChildren: RootRouteChildren = {
   IndexRoute: IndexRoute,
-  App_layoutRoute: App_layoutRoute,
+  AppRoute: AppRouteWithChildren,
   Auth_layoutRoute: Auth_layoutRoute,
   AuthLoginRoute: AuthLoginRoute,
   AuthSignupRoute: AuthSignupRoute,
-  GroupCreateRoute: GroupCreateRoute,
-  GroupDetailedGroupIdRoute: GroupDetailedGroupIdRoute,
-  AppDashboardGroupRoute: AppDashboardGroupRoute,
-  AppDashboardUsersRoute: AppDashboardUsersRoute,
-  AppDashboardIndexRoute: AppDashboardIndexRoute,
 }
 export const routeTree = rootRouteImport
   ._addFileChildren(rootRouteChildren)
