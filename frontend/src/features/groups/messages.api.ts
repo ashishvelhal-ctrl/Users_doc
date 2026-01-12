@@ -3,32 +3,32 @@ import api from "@/lib/axios"
 export type Message = {
   _id: string
   senderEmail: string
+  senderName?: string
   text?: string
-  file?: {
-    originalName: string
-    url: string
-    mimeType: string
-  }
   createdAt: string
+  file?: {
+    url: string
+    originalName: string
+  }
 }
 
-export const getMessages = async (
-  groupId: string,
-  params?: {
-    limit?: number
-    cursor?: string | null
-  }
-): Promise<{
+export type MessagesResponse = {
   messages: Message[]
-  nextCursor?: string
-}> => {
-  const res = await api.get(`/messages/${groupId}`, {
-    params: {
-      limit: params?.limit ?? 10,
-      cursor: params?.cursor ?? undefined,
-    },
-  })
+  nextCursor: string | null
+}
 
+export const getMessages = async ({
+  groupId,
+  cursor,
+  limit = 15,
+}: {
+  groupId: string
+  cursor?: string | null
+  limit?: number
+}): Promise<MessagesResponse> => {
+  const res = await api.get(`/messages/${groupId}`, {
+    params: { cursor, limit },
+  })
   return res.data
 }
 

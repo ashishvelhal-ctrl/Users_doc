@@ -8,11 +8,26 @@ export const getMessagesByGroup = async (
 ) => {
   try {
     const { groupId } = req.params
+    const { cursor, limit = 15 } = req.query
 
-    const messages = await Message.find({ groupId })
-      .sort({ createdAt: 1 })
+    const query: any = { groupId }
+    if (cursor) {
+      query._id = { $lt: cursor }
+    }
 
-    res.json(messages)
+    const messages = await Message.find(query)
+      .sort({ _id: -1 })
+      .limit(Number(limit))
+
+    const nextCursor =
+      messages.length > 0
+        ? messages[messages.length - 1]._id
+        : null
+
+    res.status(200).json({
+      messages: messages.reverse(),
+      nextCursor,
+    })
   } catch (error) {
     console.error("Get messages error:", error)
     res.status(500).json({ message: "Failed to load messages" })

@@ -1,18 +1,7 @@
-import { useQuery } from "@tanstack/react-query"
+import { useInfiniteQuery } from "@tanstack/react-query"
 import { getMessages } from "@/features/groups/messages.api"
-import { useLayoutEffect, useRef, useState } from "react"
-
-type Message = {
-  _id: string
-  text?: string
-  senderEmail: string
-  senderName?: string
-  createdAt: string
-  file?: {
-    url: string
-    originalName: string
-  }
-}
+import type { Message } from "@/features/groups/messages.api"
+import { useEffect, useRef, useState } from "react"
 
 type Props = {
   groupId: string
@@ -20,53 +9,69 @@ type Props = {
 
 const PAGE_SIZE = 15
 
-const isImageFile = (filename: string) =>
-  /\.(jpg|jpeg|png|gif|webp)$/i.test(filename)
+const isImageFile = (name: string) =>
+  /\.(jpg|jpeg|png|gif|webp)$/i.test(name)
 
 export default function GroupConversation({ groupId }: Props) {
   const containerRef = useRef<HTMLDivElement | null>(null)
   const bottomRef = useRef<HTMLDivElement | null>(null)
 
-  const [visibleCount, setVisibleCount] = useState(PAGE_SIZE)
-  const [loadingMore, setLoadingMore] = useState(false)
+  const isFirstLoad = useRef(true)
+  const isFetchingOlder = useRef(false)
+
   const [previewImage, setPreviewImage] = useState<string | null>(null)
 
   const currentUser = JSON.parse(localStorage.getItem("user") || "null")
 
-  const { data: messages = [], isLoading } = useQuery<Message[]>({
+  const {
+    data,
+    isLoading,
+    fetchNextPage,
+    hasNextPage,
+    isFetchingNextPage,
+  } = useInfiniteQuery({
     queryKey: ["messages", groupId],
-    queryFn: () => getMessages(groupId),
+    queryFn: ({ pageParam }) =>
+      getMessages({
+        groupId,
+        cursor: pageParam,
+        limit: PAGE_SIZE,
+      }),
+    getNextPageParam: (lastPage) => lastPage.nextCursor,
     staleTime: 1000 * 10,
-    keepPreviousData: true,
   })
 
-  const sortedMessages = [...messages].sort(
-    (a, b) => new Date(a.createdAt).getTime() - new Date(b.createdAt).getTime()
-  )
-
-  const visibleMessages = sortedMessages.slice(
-    Math.max(sortedMessages.length - visibleCount, 0)
-  )
-
-  useLayoutEffect(() => {
-    bottomRef.current?.scrollIntoView({ behavior: "smooth" })
-  }, [sortedMessages.length])
-  const handleScroll = () => {
+  const messages: Message[] =
+    data?.pages
+      .flatMap((p) => p.messages)
+      .sort(
+        (a, b) =>
+          new Date(a.createdAt).getTime() -
+          new Date(b.createdAt).getTime()
+      ) ?? []
+  useEffect(() => {
     if (!containerRef.current) return
+    if (isFirstLoad.current) {
+      bottomRef.current?.scrollIntoView({ behavior: "auto" })
+      isFirstLoad.current = false
+      return
+    }
+    if (isFetchingOlder.current) {
+      isFetchingOlder.current = false
+      return
+    }
+    bottomRef.current?.scrollIntoView({ behavior: "smooth" })
+  }, [messages.length])
+
+  const handleScroll = () => {
+    if (!containerRef.current || !hasNextPage) return
 
     if (
       containerRef.current.scrollTop === 0 &&
-      visibleCount < sortedMessages.length &&
-      !loadingMore
+      !isFetchingOlder.current
     ) {
-      setLoadingMore(true)
-
-      setTimeout(() => {
-        setVisibleCount((prev) =>
-          Math.min(prev + PAGE_SIZE, sortedMessages.length)
-        )
-        setLoadingMore(false)
-      }, 400)
+      isFetchingOlder.current = true
+      fetchNextPage()
     }
   }
 
@@ -77,8 +82,8 @@ export default function GroupConversation({ groupId }: Props) {
         onScroll={handleScroll}
         className="h-full overflow-y-auto p-4 bg-slate-900"
       >
-        {loadingMore && (
-          <div className="text-center text-xs text-slate-400 mb-3">
+        {isFetchingNextPage && (
+          <div className="text-center text-xs text-slate-400 mb-2">
             Loading older messages...
           </div>
         )}
@@ -89,13 +94,13 @@ export default function GroupConversation({ groupId }: Props) {
           </div>
         )}
 
-        {!isLoading && visibleMessages.length === 0 && (
+        {!isLoading && messages.length === 0 && (
           <div className="h-full flex items-center justify-center text-slate-500 text-sm">
             No messages yet
           </div>
         )}
 
-        {visibleMessages.map((msg) => {
+        {messages.map((msg) => {
           if (!msg || !msg.senderEmail) return null
 
           const isMe = msg.senderEmail === currentUser?.email
