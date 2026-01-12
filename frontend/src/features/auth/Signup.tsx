@@ -5,6 +5,7 @@ import { useMutation } from "@tanstack/react-query"
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
+import { useSignupMutation } from "@/lib/mutations"
 
 export default function Signup() {
   const navigate = useNavigate()
@@ -13,21 +14,7 @@ export default function Signup() {
   const [email, setEmail] = useState("")
   const [password, setPassword] = useState("")
 
-  const signupMutation = useMutation({
-    mutationFn: async () => {
-      const res = await fetch("http://localhost:5000/api/auth/signup", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ name, email, password }),
-      })
-
-      if (!res.ok) throw new Error("Signup failed")
-      return res.json()
-    },
-    onSuccess: () => {
-      navigate({ to: "/auth/login" })
-    },
-  })
+  const signupMutation = useSignupMutation()
 
   return (
     <Card className="w-full max-w-md bg-slate-900 text-white">
@@ -59,7 +46,7 @@ export default function Signup() {
 
         <Button
           className="w-full"
-          onClick={() => signupMutation.mutate()}
+          onClick={() => signupMutation.mutate({ name, email, password })}
           disabled={signupMutation.isPending}
         >
           {signupMutation.isPending ? "Creating..." : "Sign Up"}

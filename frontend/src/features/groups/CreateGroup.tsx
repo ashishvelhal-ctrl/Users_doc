@@ -1,23 +1,28 @@
 import { useEffect, useMemo, useState } from "react"
-import { useQuery, useQueryClient } from "@tanstack/react-query"
-import API from "@/features/auth/auth.api"
+import { useQuery } from "@tanstack/react-query"
+import { useCreateGroupMutation } from "@/lib/mutations"
 import { useAuth } from "@/hooks/useAuth"
 
 export default function CreateGroup() {
   const { user } = useAuth()
-  const queryClient = useQueryClient()
-
   const [groupName, setGroupName] = useState("")
   const [description, setDescription] = useState("")
   const [selectedUsers, setSelectedUsers] = useState<string[]>([])
   const [search, setSearch] = useState("")
-  const [loading, setLoading] = useState(false)
 
   const { data: users = [] } = useQuery({
     queryKey: ["users"],
-    queryFn: async () => (await API.get("/users")).data,
+    queryFn: async () => {
+      const response = await fetch("http://localhost:5000/api/users", {
+        credentials: "include",
+      })
+      if (!response.ok) throw new Error("Failed to load users")
+      return response.json()
+    },
     staleTime: 1000 * 60 * 10,
   })
+
+  const createGroupMutation = useCreateGroupMutation()
 
   useEffect(() => {
     if (user?._id) setSelectedUsers([user._id])
@@ -34,25 +39,14 @@ export default function CreateGroup() {
   )
 
   const handleCreate = async () => {
-    if (!groupName.trim() || !user) return
+    if (!groupName.trim()) return
 
-    setLoading(true)
-    const res = await API.post("/groups", {
+    createGroupMutation.mutate({
       name: groupName.trim(),
-      description,
+      description: description.trim() || undefined,
       users: selectedUsers,
-      createdBy: user._id,
+      createdBy: user!._id,
     })
-
-    queryClient.setQueryData(["groups"], (old: any) => {
-      return old ? [res.data, ...old] : [res.data]
-    })
-
-    setGroupName("")
-    setDescription("")
-    setSelectedUsers([user._id])
-    setSearch("")
-    setLoading(false)
   }
 
   return (
@@ -100,10 +94,10 @@ export default function CreateGroup() {
 
       <button
         onClick={handleCreate}
-        disabled={loading}
+        disabled={createGroupMutation.isPending}
         className="mt-4 w-full bg-indigo-600 py-2 rounded"
       >
-        {loading ? "Creating..." : "Create Group"}
+        {createGroupMutation.isPending ? "Creating..." : "Create Group"}
       </button>
     </div>
   )

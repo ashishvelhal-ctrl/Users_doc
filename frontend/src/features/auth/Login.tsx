@@ -1,42 +1,16 @@
 import { useState } from "react"
-import { Link, useNavigate } from "@tanstack/react-router"
-import { useMutation, useQueryClient } from "@tanstack/react-query"
+import { Link } from "@tanstack/react-router"
 
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
+import { useLoginMutation } from "@/lib/mutations"
 
 export default function Login() {
-  const navigate = useNavigate()
-  const queryClient = useQueryClient()
   const [email, setEmail] = useState("")
   const [password, setPassword] = useState("")
 
-  const loginMutation = useMutation({
-    mutationFn: async () => {
-      const res = await fetch("http://localhost:5000/api/auth/login", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        credentials: "include",
-        body: JSON.stringify({ email, password }),
-      })
-
-      if (!res.ok) throw new Error("Invalid credentials")
-      return res.json()
-    },
-
-    onSuccess: (data) => {
-      localStorage.setItem("user", JSON.stringify(data.user))
-      
-      // Invalidate and refetch the auth query to update the auth state
-      queryClient.invalidateQueries({ queryKey: ["me"] })
-      
-      // Small delay to ensure auth state is updated
-      setTimeout(() => {
-        navigate({ to: "/dashboard" })
-      }, 100)
-    },
-  })
+  const loginMutation = useLoginMutation()
 
   return (
     <Card className="w-full max-w-md bg-slate-900 text-white">
@@ -48,7 +22,7 @@ export default function Login() {
         <Input placeholder="Email" value={email} onChange={(e) => setEmail(e.target.value)} />
         <Input type="password" placeholder="Password" value={password} onChange={(e) => setPassword(e.target.value)} />
 
-        <Button className="w-full" onClick={() => loginMutation.mutate()}>
+        <Button className="w-full" onClick={() => loginMutation.mutate({ email, password })}>
           {loginMutation.isPending ? "Logging in..." : "Login"}
         </Button>
 
@@ -57,7 +31,7 @@ export default function Login() {
         )}
 
         <p className="text-sm text-center text-gray-400">
-          Don’t have an account?{" "}
+          Don't have an account?{" "}
           <Link to="/auth/signup" className="text-indigo-400 hover:underline">
             Sign up
           </Link>
