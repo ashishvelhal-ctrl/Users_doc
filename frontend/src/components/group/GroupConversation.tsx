@@ -1,4 +1,4 @@
-import { useInfiniteQuery } from "@tanstack/react-query"
+import { useInfiniteQuery, useQueryClient } from "@tanstack/react-query"
 import { useVirtualizer } from "@tanstack/react-virtual"
 import { getMessages } from "@/features/groups/messages.api"
 import type { Message } from "@/features/groups/messages.api"
@@ -25,6 +25,17 @@ export default function GroupConversation({ groupId }: Props) {
 
   const currentUser = JSON.parse(localStorage.getItem("user") || "null")
 
+
+  const queryClient = useQueryClient()
+
+  useEffect(() => {
+    return () => {
+      queryClient.removeQueries({
+        queryKey: ["messages", groupId],
+      })
+    }
+  }, [groupId, queryClient])
+
   const {
     data,
     isLoading,
@@ -41,6 +52,7 @@ export default function GroupConversation({ groupId }: Props) {
       }),
     getNextPageParam: (lastPage) => lastPage.nextCursor,
     staleTime: 1000 * 10,
+    cacheTime: 1000 * 60 * 2,
     initialPageParam: undefined,
   })
 
