@@ -6,14 +6,18 @@ import {
 import { useQuery } from "@tanstack/react-query"
 import { useAuth } from "@/hooks/useAuth"
 import { useState } from "react"
+import { API_BASE_URL } from "@/lib/api-config"
 
 type Group = {
   _id: string
   name: string
+  users?: string[]
+  members?: string[]
+  [key: string]: any // Allow any other properties
 }
 
 async function fetchGroups(): Promise<Group[]> {
-  const res = await fetch("http://localhost:5000/api/groups", {
+  const res = await fetch(`${API_BASE_URL}/groups`, {
     credentials: "include",
   })
   if (!res.ok) throw new Error("Failed to load groups")

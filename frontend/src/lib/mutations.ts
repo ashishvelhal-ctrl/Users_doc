@@ -1,9 +1,10 @@
 import { useMutation, useQueryClient } from "@tanstack/react-query"
 import { useNavigate } from "@tanstack/react-router"
 import axios from "axios"
+import { API_BASE_URL } from "./api-config"
 
 const api = axios.create({
-  baseURL: "http://localhost:5000/api",
+  baseURL: API_BASE_URL,
   withCredentials: true,
   timeout: 10000,
 })
