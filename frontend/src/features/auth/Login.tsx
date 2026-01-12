@@ -1,6 +1,6 @@
 import { useState } from "react"
 import { Link, useNavigate } from "@tanstack/react-router"
-import { useMutation } from "@tanstack/react-query"
+import { useMutation, useQueryClient } from "@tanstack/react-query"
 
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 import { Button } from "@/components/ui/button"
@@ -8,6 +8,7 @@ import { Input } from "@/components/ui/input"
 
 export default function Login() {
   const navigate = useNavigate()
+  const queryClient = useQueryClient()
   const [email, setEmail] = useState("")
   const [password, setPassword] = useState("")
 
@@ -26,8 +27,14 @@ export default function Login() {
 
     onSuccess: (data) => {
       localStorage.setItem("user", JSON.stringify(data.user))
-
-      navigate({ to: "/app/dashboard" })
+      
+      // Invalidate and refetch the auth query to update the auth state
+      queryClient.invalidateQueries({ queryKey: ["me"] })
+      
+      // Small delay to ensure auth state is updated
+      setTimeout(() => {
+        navigate({ to: "/dashboard" })
+      }, 100)
     },
   })
 

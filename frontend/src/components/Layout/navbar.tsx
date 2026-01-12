@@ -11,7 +11,7 @@ export default function Navbar({ onCreateGroup }: NavbarProps) {
 
   const handleCreateGroup = () => {
     onCreateGroup?.()
-    navigate({ to: "/app/groups/create" })
+    navigate({ to: "/groups/create" })
   }
 
   return (

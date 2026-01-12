@@ -3,7 +3,7 @@ import { useQuery } from "@tanstack/react-query"
 import GroupChatLayout from "../../../components/group/GroupChatLayout"
 import { getGroupById } from "@/features/groups/groups.api"
 
-export const Route = createFileRoute("/app/groups/$groupId")({
+export const Route = createFileRoute("/__authenticated/groups/$groupId")({
   component: GroupChatPage,
 })
 

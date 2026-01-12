@@ -34,7 +34,7 @@ export default function Sidebar() {
     queryKey: ["groups"],
     queryFn: fetchGroups,
     staleTime: 1000 * 60 * 5,
-    cacheTime: 1000 * 60 * 30,
+    gcTime: 1000 * 60 * 30,
   })
 
   const handleLogout = async () => {
@@ -57,7 +57,7 @@ export default function Sidebar() {
       </button>
 
       <Link
-        to="/app/dashboard"
+        to="/dashboard"
         title="Dashboard"
         className={`flex items-center gap-3 px-3 py-2 rounded hover:bg-gray-800 ${
           isCollapsed && "justify-center"
@@ -84,17 +84,17 @@ export default function Sidebar() {
         </p>
       )}
 
-      <div className="flex-1 mt-2 space-y-1">
+      <div className="flex-1 mt-2 space-y-1 overflow-y-auto">
         {groups.map((group) => {
           const isActive = matchRoute({
-            to: "/app/groups/$groupId",
+            to: "/groups/$groupId",
             params: { groupId: group._id },
           })
 
           return (
             <Link
               key={group._id}
-              to="/app/groups/$groupId"
+              to="/groups/$groupId"
               params={{ groupId: group._id }}
               title={group.name}
               className={`flex items-center gap-3 px-3 py-2 text-sm rounded transition ${
@@ -118,7 +118,7 @@ export default function Sidebar() {
       </div>
 
       <Link
-        to="/app/groups/create"
+        to="/groups/create"
         title="Create Group"
         className={`mt-3 flex items-center gap-3 px-3 py-2 text-sm text-indigo-400 hover:bg-gray-800 rounded ${
           isCollapsed && "justify-center"
